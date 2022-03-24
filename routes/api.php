@@ -20,7 +20,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::group([
     'namespace' => 'User',
 ], function () {
-    Route::post('login','LoginController@loginSuper');
+    Route::post('login','LoginController@loginApi');
     Route::post('register','RegisterController@registerApi');
 });
 
@@ -31,4 +31,14 @@ Route::group([
 ], function () {
     Route::get('list','FacutlyController@FacutlyListApi');
     Route::get('classList','ClassController@ClassListApi');
+});
+
+Route::group([
+    'namespace' => 'Thesis',
+    'prefix' => 'thesis',
+    'middleware' => 'auth'
+], function () {
+    Route::post('list','ThesisController@getlistApi');
+    Route::post('detail','ThesisController@getdetailApi');
+    Route::post('approvalThesis','ThesisController@approvalThesisApi');  
 });

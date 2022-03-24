@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Login;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class LoginController extends Controller
 {
@@ -15,6 +16,10 @@ class LoginController extends Controller
             // 认证通过...
             $json['code'] = 200;
             $obj['username'] = $param['phone'];
+            $user = User::where([
+                'phone'=> $param['phone'],
+            ]) -> first();
+            $obj['type'] = $user['type'];
             $json['data'] = $obj;
             $json['message'] = '登录成功';
             return $json;
