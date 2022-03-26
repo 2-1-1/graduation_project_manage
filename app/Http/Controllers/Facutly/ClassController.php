@@ -13,7 +13,7 @@ class ClassController extends Controller
         $param = $request->post();
         $list = DB::table('class')
         ->where([
-            'facutlyId'=> $param['facutlyId'],
+            'facutly_id'=> $param['facutlyId'],
         ]) -> get();
 
         $json['code'] = 200;

@@ -70,7 +70,7 @@ class ThesisController extends Controller
             'id' => $param['id'],
         ])->first();
         $data['approvalList'] = ThesisApproval::where([
-            'parent_id' => $param['id'],
+            'thesis_id' => $param['id'],
         ])->get();
 
         $json['code'] = 200;
@@ -84,7 +84,7 @@ class ThesisController extends Controller
         $param = $request->post();
 
         $approvalList = ThesisApproval::where([
-            'parent_id' => $param['id'],
+            'thesis_id' => $param['id'],
         ])->get();
         $thesisObj = Thesis::where([
             'id' => $param['id'],
@@ -101,7 +101,7 @@ class ThesisController extends Controller
                     if (!array_search("pass", array_column($approvalList, 'event'))) {
                         ThesisApproval::create([
                             'event' => $param['event'],
-                            'parent_id' => $param['id'],
+                            'thesis_id' => $param['id'],
                             'title' => $param['event'] === 'pass' ? '通过了审批' : ($param['event'] === 'reject' ? '拒绝了审批' : '发起了提交'),
                             'description' => $param['event'] === 'pass' 
                             ? $user['name'] . '在' . date('Y-m-d h:i:s', time()) . '通过了审批' 
@@ -122,7 +122,7 @@ class ThesisController extends Controller
                     if (!array_search("reject", array_column($approvalList, 'event'))) {
                         ThesisApproval::create([
                             'event' => $param['event'],
-                            'parent_id' => $param['id'],
+                            'thesis_id' => $param['id'],
                             'title' => '拒绝了审批',
                             'description' => $user['name'] . '在' . date('Y-m-d h:i:s', time()) . '拒绝了审批',
                         ]);
@@ -139,7 +139,7 @@ class ThesisController extends Controller
                     if (!array_search("pendding", array_column($approvalList, 'event'))) {
                         ThesisApproval::create([
                             'event' => $param['event'],
-                            'parent_id' => $param['id'],
+                            'thesis_id' => $param['id'],
                             'title' => '发起了提交',
                             'description' => $user['name'] . '在' . date('Y-m-d h:i:s', time()) . '发起了提交',
                         ]);
