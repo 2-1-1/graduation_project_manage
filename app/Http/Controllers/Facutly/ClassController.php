@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Facutly;
+namespace App\Http\Controllers\Faculty;
 
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
@@ -8,12 +8,12 @@ use Illuminate\Http\Request;
 
 class ClassController extends Controller
 {
-    public function ClassListApi(Request $request)
+    public function classListApi(Request $request)
     {
         $param = $request->post();
         $list = DB::table('class')
         ->where([
-            'facutly_id'=> $param['facutlyId'],
+            'faculty_id'=> $param['facultyId'],
         ]) -> get();
 
         $json['code'] = 200;

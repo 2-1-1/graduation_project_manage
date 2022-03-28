@@ -25,12 +25,20 @@ Route::group([
 });
 
 Route::group([
-    'namespace' => 'Facutly',
-    'prefix' => 'facutly',
+    'namespace' => 'User',
+    'prefix' => 'user',
     'middleware' => 'auth'
 ], function () {
-    Route::get('list','FacutlyController@FacutlyListApi');
-    Route::get('classList','ClassController@ClassListApi');
+    Route::get('getStudentList','GetListController@getStudentListApi');
+});
+
+Route::group([
+    'namespace' => 'Faculty',
+    'prefix' => 'faculty',
+    'middleware' => 'auth'
+], function () {
+    Route::get('list','FacultyController@facultyListApi');
+    Route::get('classList','ClassController@classListApi');
 });
 
 Route::group([
@@ -41,4 +49,23 @@ Route::group([
     Route::post('list','ThesisController@getlistApi');
     Route::post('detail','ThesisController@getdetailApi');
     Route::post('approvalThesis','ThesisController@approvalThesisApi');  
+});
+
+Route::group([
+    'namespace' => 'Task',
+    'prefix' => 'task',
+    'middleware' => 'auth'
+], function () {
+    Route::post('list','TaskController@getlistApi');
+    Route::post('detail','TaskController@getdetailApi');
+    Route::post('release','TaskController@releaseTaskApi');
+    Route::post('upload','TaskController@uploadApi');
+    Route::post('approvalTask','TaskController@approvalTaskApi'); 
+});
+
+Route::group([
+    'namespace' => 'Download',
+    'middleware' => 'auth'
+], function () {
+    Route::post('download','DownloadController@downloadApi');
 });

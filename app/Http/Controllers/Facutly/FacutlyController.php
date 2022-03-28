@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Http\Controllers\Facutly;
+namespace App\Http\Controllers\Faculty;
 
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class FacutlyController extends Controller
+class FacultyController extends Controller
 {
-    public function FacutlyListApi(Request $request)
+    public function facultyListApi(Request $request)
     {
         $param = $request->post();
         $list = DB::table('facultylist')->get();
