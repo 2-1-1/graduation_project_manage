@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Http\Controllers\Task;
+namespace App\Http\Controllers\Weekly;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\User\GetListController;
 use Illuminate\Http\Request;
-use App\Models\Task;
-use App\Models\TaskDetail;
+use App\Models\Weekly;
+use App\Models\WeeklyDetail;
 use Illuminate\Support\Facades\Auth;
 
-class TaskController extends Controller
+class WeeklyController extends Controller
 {
     // var $user = Auth::user();
 
@@ -18,13 +18,30 @@ class TaskController extends Controller
         return json_decode(json_encode($object), true);
     }
 
+    static public function createWeeklyApi()
+    {
+        $list = GetListController::getTeacherListApi()['data'];
+        for($i = 0 ;$i < count($list);$i++){
+            echo $i;
+            Weekly::create([
+                'number' => date('Ymdhis', time()) . str_random(6),
+                'weekly_date' => date('Y-m-d h:i:s', time()).'-'.date("Y-m-d H:i:s",strtotime("7 day")),
+                'status' => '0',
+                'created_time' => date('Y-m-d h:i:s', time()),
+                'faculty_id' => $list[$i]['faculty'],
+                'teacher_id' => $list[$i]['id'],
+                'teacher_name' => $list[$i]['name'],
+            ]);
+        }
+    }    
+
     public function getlistApi(Request $request)
     {
         $user = Auth::user();
         // global $user;
         global $param;
         $param = $request->post();
-        $list = Task::where([
+        $list = Weekly::where([
             'teacher_id' => $user['id'],
         ])
             ->where(
@@ -51,17 +68,6 @@ class TaskController extends Controller
             )
             ->where(
                 function ($query) use ($param) {
-                    if (isset($param['title'])) {
-                        $query->where(
-                            'title',
-                            'LIKE',
-                            '%' . $param['title'] . '%'
-                        );
-                    }
-                }
-            )
-            ->where(
-                function ($query) use ($param) {
                     if (isset($param['number'])) {
                         $query->where([
                             'number' => $param['number']
@@ -82,11 +88,11 @@ class TaskController extends Controller
         $user = Auth::user();
         // global $user;
         $param = $request->post();
-        $list = TaskDetail::where([
+        $list = WeeklyDetail::where([
             'faculty_id' => $user['faculty'],
         ])
             ->where([
-                'task_id' => $param['id'],
+                'weekly_id' => $param['id'],
             ])
             ->where(
                 function ($query) use ($param) {
@@ -115,51 +121,26 @@ class TaskController extends Controller
 
     public function uploadApi(Request $request)
     {
-        $path = $request->file('file')->store('public/task');
+        $path = $request->file('file')->store('public/weekly');
 
         $json['code'] = 200;
         $json['data'] = $path;
         return $json;
     }
 
-
-    public function releaseTaskApi(Request $request)
-    {
-        global $param;
-        $user = Auth::user();
-        // global $user;
-        $param = $request->post();
-        Task::create([
-            'number' => date('Ymdhis', time()) . str_random(6),
-            'uid' => $param['file']['uid'],
-            'name' => $param['file']['name'],
-            'url' => $param['file']['url'],
-            'title' => $param['title'],
-            'status' => '0',
-            'created_time' => date('Y-m-d h:i:s', time()),
-            'teacher_id' => $user['id'],
-            'teacher_name' => $user['name'],
-            'faculty_id' => $user['faculty'],
-        ]);
-
-        $json['code'] = 200;
-        $json['message'] = '发布任务成功';
-        return $json;
-    }
-
-    public function approvalTaskApi(Request $request)
+    public function approvalWeeklyApi(Request $request)
     {
         global $param;
         $param = $request->post();
         $user = Auth::user();
         if (isset($param['id'])) {
-            $approvalObj = TaskDetail::where([
+            $approvalObj = WeeklyDetail::where([
                 'id' => $param['id'],
             ])->first();
 
             if (isset($param['event'])) {
                 if ($approvalObj['status'] !== 'pass') {
-                    TaskDetail::where([
+                    WeeklyDetail::where([
                         'id' => $param['id'],
                     ])->first()
                         ->where(
@@ -178,18 +159,18 @@ class TaskController extends Controller
                         );
 
                     if ($param['event'] === 'pass') {
-                        $taskDetailTotal = count(GetListController::getStudentListApi()['data']);
-                        $taskDetailFinish = TaskDetail::where([
-                            'task_id' => $param['task_id'],
+                        $weeklyDetailTotal = count(GetListController::getStudentListApi()['data']);
+                        $weeklyDetailFinish = WeeklyDetail::where([
+                            'weekly_id' => $param['weekly_id'],
                         ])
                             ->where([
                                 'status' => 'pass',
                             ])
                             ->get()->count('id');
 
-                        Task::where([
-                            'id' => $param['task_id'],
-                        ])->first()->update(['status' => round($taskDetailFinish / $taskDetailTotal, 2) * 100]);
+                        Weekly::where([
+                            'id' => $param['weekly_id'],
+                        ])->first()->update(['status' => round($weeklyDetailFinish / $weeklyDetailTotal, 2) * 100]);
                     }
                 } else {
                     $json['code'] = 500;
@@ -198,13 +179,12 @@ class TaskController extends Controller
                 }
             }
         } else {
-            TaskDetail::create([
+            WeeklyDetail::create([
                 'status' => 'pendding',
-                'task_id' => $param['task_id'],
+                'weekly_id' => $param['weekly_id'],
                 'uid' => $param['file']['uid'],
                 'name' => $param['file']['name'],
                 'url' => $param['file']['url'],
-                'title' => $param['title'],
                 'created_time' => date('Y-m-d h:i:s', time()),
                 'faculty_id' => $user['faculty'],
                 'student_id' => $user['id'],

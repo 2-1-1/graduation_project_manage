@@ -23,4 +23,15 @@ class GetListController extends Controller
         $json['data'] = $list;
         return $json;
     }
+
+    static public function getTeacherListApi()
+    {
+        $list = User::where([
+            'type'=> 'teacher',
+        ])
+        -> get();
+        $json['code'] = 200;
+        $json['data'] = $list;
+        return $json;
+    }    
 }

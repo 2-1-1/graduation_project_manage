@@ -64,6 +64,17 @@ Route::group([
 });
 
 Route::group([
+    'namespace' => 'Weekly',
+    'prefix' => 'weekly',
+    'middleware' => 'auth'
+], function () {
+    Route::post('list','WeeklyController@getlistApi');
+    Route::post('detail','WeeklyController@getdetailApi');
+    Route::post('upload','WeeklyController@uploadApi');
+    Route::post('approvalWeekly','WeeklyController@approvalWeeklyApi'); 
+});
+
+Route::group([
     'namespace' => 'Download',
     'middleware' => 'auth'
 ], function () {
