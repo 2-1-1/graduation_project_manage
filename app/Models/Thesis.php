@@ -18,5 +18,20 @@ class Thesis extends Model
      */
     public $timestamps = false;
 
-    protected $fillable = ['title', 'title_id', 'uid', 'name', 'url', 'modified_time', 'student_id', 'student_name', 'status', 'grade'];
+    protected $fillable = ['number', 'title', 'uid', 'name', 'url', 'created_time', 'faculty_id', 'student_id', 'student_name', 'status', 'grade'];
+
+    static public function getDetailByStudent($faculty_id, $student_id)
+    {
+        return self::where([
+            'faculty_id' => $faculty_id,
+        ])
+            ->where(
+                function ($query) use ($student_id) {
+                    $query->where([
+                        'student_id' => $student_id
+                    ]);
+                }
+            )
+            ->first();
+    }
 }

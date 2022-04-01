@@ -159,23 +159,20 @@ class TaskController extends Controller
 
             if (isset($param['event'])) {
                 if ($approvalObj['status'] !== 'pass') {
-                    TaskDetail::where([
-                        'id' => $param['id'],
-                    ])->first()
-                        ->where(
-                            function ($query) use ($param) {
-                                if (isset($param['event'])) {
-                                    $query->update([
-                                        'status' => $param['event']
-                                    ]);
-                                }
-                                if (isset($param['reason'])) {
-                                    $query->update([
-                                        'remark' => $param['reason']
-                                    ]);
-                                }
-                            }
-                        );
+                    if(isset($param['event'])){
+                        TaskDetail::where([
+                            'id' => $param['id'],
+                        ])->first()->update([
+                            'status' => $param['event']
+                        ]);
+                    }
+                    if(isset($param['reason'])){
+                        TaskDetail::where([
+                            'id' => $param['id'],
+                        ])->first()->update([
+                            'remark' => $param['reason']
+                        ]);
+                    }
 
                     if ($param['event'] === 'pass') {
                         $taskDetailTotal = count(GetListController::getStudentListApi()['data']);

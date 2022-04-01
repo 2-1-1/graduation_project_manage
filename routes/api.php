@@ -48,7 +48,8 @@ Route::group([
 ], function () {
     Route::post('list','ThesisController@getlistApi');
     Route::post('detail','ThesisController@getdetailApi');
-    Route::post('approvalThesis','ThesisController@approvalThesisApi');  
+    Route::post('approvalThesis','ThesisController@approvalThesisApi');
+    Route::post('upload','ThesisController@uploadApi');
 });
 
 Route::group([

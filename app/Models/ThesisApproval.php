@@ -18,5 +18,5 @@ class ThesisApproval extends Model
      */
     public $timestamps = false;
 
-    protected $fillable = ['thesis_id', 'title', 'description', 'event'];
+    protected $fillable = ['thesis_id', 'title', 'description', 'event', 'faculty_id'];
 }
