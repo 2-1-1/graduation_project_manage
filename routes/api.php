@@ -61,7 +61,8 @@ Route::group([
     Route::post('detail','TaskController@getdetailApi');
     Route::post('release','TaskController@releaseTaskApi');
     Route::post('upload','TaskController@uploadApi');
-    Route::post('approvalTask','TaskController@approvalTaskApi'); 
+    Route::post('approvalTask','TaskController@approvalTaskApi');
+    Route::post('uploadStudent','TaskController@uploadStudentApi');
 });
 
 Route::group([

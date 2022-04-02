@@ -25,7 +25,7 @@ class TaskController extends Controller
         global $param;
         $param = $request->post();
         $list = Task::where([
-            'teacher_id' => $user['id'],
+            'faculty_id' => $user['faculty'],
         ])
             ->where(
                 function ($query) use ($param) {
@@ -70,6 +70,22 @@ class TaskController extends Controller
                 }
             )
             ->get();
+
+        if (isset($param['type']) && $param['type'] === 'student') {
+            for ($i = 0; $i < count($list); $i++) {
+                $item = TaskDetail::getDetailByStudent($user['faculty'], $user['id'], $list[$i]['id']);
+
+                if ($item) {
+                    $list[$i]['student_uid'] = $item['uid'];
+                    $list[$i]['student_name'] = $item['name'];
+                    $list[$i]['student_url'] = $item['url'];
+                    $list[$i]['status'] = $item['status'];
+                    $list[$i]['remark'] = $item['remark'];
+                } else {
+                    $list[$i]['status'] = 'ready';
+                }
+            }
+        }
 
         $json['code'] = 200;
         $json['data'] = $list;
@@ -122,6 +138,52 @@ class TaskController extends Controller
         return $json;
     }
 
+    public function uploadStudentApi(Request $request)
+    {
+        global $param;
+        $param = $request->post();
+        $user = Auth::user();
+        $path = $request->file('file')->store('public/task_student');
+
+        $taskObj = TaskDetail::getDetailByStudent($user['faculty'], $user['id'], $param['id']);
+
+        $filename = $_FILES['file']['name'];
+        if (!$taskObj['id']) {
+            $uid = 0;
+            $uid++;
+            TaskDetail::create([
+                'task_id' => $param['id'],
+                'uid' => time() . $uid,
+                'name' => $filename,
+                'url' => $path,
+                'status' => 'pending',
+                'created_time' => date('Y-m-d h:i:s', time()),
+                'faculty_id' => $user['faculty'],
+                'student_id' => $user['id'],
+                'student_name' => $user['name'],
+            ]);
+        } else {
+            $uid = 0;
+            $uid++;
+            TaskDetail::getDetailByStudent($user['faculty'], $user['id'], $param['id'])
+                ->update([
+                    'uid' => time() . $uid,
+                    'name' => $filename,
+                    'url' => $path,
+                ]);
+            if ($taskObj['status'] === 'reject') {
+                TaskDetail::getDetailByStudent($user['faculty'], $user['id'], $param['id'])
+                    ->update([
+                        'status' => 'pending',
+                    ]);
+            }
+        }
+
+        $json['code'] = 200;
+        $json['data'] = $path;
+        return $json;
+    }
+
 
     public function releaseTaskApi(Request $request)
     {
@@ -159,14 +221,14 @@ class TaskController extends Controller
 
             if (isset($param['event'])) {
                 if ($approvalObj['status'] !== 'pass') {
-                    if(isset($param['event'])){
+                    if (isset($param['event'])) {
                         TaskDetail::where([
                             'id' => $param['id'],
                         ])->first()->update([
                             'status' => $param['event']
                         ]);
                     }
-                    if(isset($param['reason'])){
+                    if (isset($param['reason'])) {
                         TaskDetail::where([
                             'id' => $param['id'],
                         ])->first()->update([
