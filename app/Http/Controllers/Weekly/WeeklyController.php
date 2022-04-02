@@ -25,7 +25,7 @@ class WeeklyController extends Controller
             echo $i;
             Weekly::create([
                 'number' => date('Ymdhis', time()) . str_random(6),
-                'weekly_date' => date('Y-m-d h:i:s', time()).'-'.date("Y-m-d H:i:s",strtotime("7 day")),
+                'weekly_date' => date('Y-m-d', time()).' - '.date("Y-m-d",strtotime("7 day")),
                 'status' => '0',
                 'created_time' => date('Y-m-d h:i:s', time()),
                 'faculty_id' => $list[$i]['faculty'],
@@ -42,7 +42,7 @@ class WeeklyController extends Controller
         global $param;
         $param = $request->post();
         $list = Weekly::where([
-            'teacher_id' => $user['id'],
+            'faculty_id' => $user['faculty'],
         ])
             ->where(
                 function ($query) use ($param) {
@@ -75,7 +75,25 @@ class WeeklyController extends Controller
                     }
                 }
             )
+            ->orderBy('created_time', 'desc')
             ->get();
+
+            if (isset($param['type']) && $param['type'] === 'student') {
+                for ($i = 0; $i < count($list); $i++) {
+                    $item = WeeklyDetail::getDetailByStudent($user['faculty'], $user['id'], $list[$i]['id']);
+    
+                    if ($item) {
+                        $list[$i]['uid'] = $item['uid'];
+                        $list[$i]['name'] = $item['name'];
+                        $list[$i]['url'] = $item['url'];
+                        $list[$i]['status'] = $item['status'];
+                        $list[$i]['remark'] = $item['remark'];
+                        $list[$i]['submit_time'] = $item['created_time'];
+                    } else {
+                        $list[$i]['status'] = 'ready';
+                    }
+                }
+            }
 
         $json['code'] = 200;
         $json['data'] = $list;
@@ -121,7 +139,44 @@ class WeeklyController extends Controller
 
     public function uploadApi(Request $request)
     {
+        global $param;
+        $param = $request->post();
+        $user = Auth::user();
         $path = $request->file('file')->store('public/weekly');
+
+        $taskObj = WeeklyDetail::getDetailByStudent($user['faculty'], $user['id'], $param['id']);
+
+        $filename = $_FILES['file']['name'];
+        if (!$taskObj['id']) {
+            $uid = 0;
+            $uid++;
+            WeeklyDetail::create([
+                'weekly_id' => $param['id'],
+                'uid' => time() . $uid,
+                'name' => $filename,
+                'url' => $path,
+                'status' => 'pending',
+                'created_time' => date('Y-m-d h:i:s', time()),
+                'faculty_id' => $user['faculty'],
+                'student_id' => $user['id'],
+                'student_name' => $user['name'],
+            ]);
+        } else {
+            $uid = 0;
+            $uid++;
+            WeeklyDetail::getDetailByStudent($user['faculty'], $user['id'], $param['id'])
+                ->update([
+                    'uid' => time() . $uid,
+                    'name' => $filename,
+                    'url' => $path,
+                ]);
+            if ($taskObj['status'] === 'reject') {
+                WeeklyDetail::getDetailByStudent($user['faculty'], $user['id'], $param['id'])
+                    ->update([
+                        'status' => 'pending',
+                    ]);
+            }
+        }
 
         $json['code'] = 200;
         $json['data'] = $path;
@@ -142,21 +197,16 @@ class WeeklyController extends Controller
                 if ($approvalObj['status'] !== 'pass') {
                     WeeklyDetail::where([
                         'id' => $param['id'],
-                    ])->first()
-                        ->where(
-                            function ($query) use ($param) {
-                                if (isset($param['event'])) {
-                                    $query->update([
-                                        'status' => $param['event']
-                                    ]);
-                                }
-                                if (isset($param['reason'])) {
-                                    $query->update([
-                                        'remark' => $param['reason']
-                                    ]);
-                                }
-                            }
-                        );
+                    ])->first()->update([
+                        'status' => $param['event']
+                    ]);
+                    if (isset($param['reason'])) {
+                        WeeklyDetail::where([
+                            'id' => $param['id'],
+                        ])->first()->update([
+                            'remark' => $param['reason']
+                        ]);
+                    }
 
                     if ($param['event'] === 'pass') {
                         $weeklyDetailTotal = count(GetListController::getStudentListApi()['data']);

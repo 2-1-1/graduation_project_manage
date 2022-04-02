@@ -19,4 +19,26 @@ class WeeklyDetail extends Model
     public $timestamps = false;
 
     protected $fillable = ['weekly_id', 'status', 'created_time', 'uid', 'name', 'url', 'faculty_id', 'student_id', 'student_name', 'remark'];
+
+    static public function getDetailByStudent($faculty_id, $student_id, $weekly_id)
+    {
+        return self::where([
+            'faculty_id' => $faculty_id,
+        ])
+            ->where(
+                function ($query) use ($weekly_id) {
+                    $query->where([
+                        'weekly_id' => $weekly_id
+                    ]);
+                }
+            )
+            ->where(
+                function ($query) use ($student_id) {
+                    $query->where([
+                        'student_id' => $student_id
+                    ]);
+                }
+            )
+            ->first();
+    }
 }
